@@ -142,10 +142,12 @@ class Spimi_Merger:
         for i in temp_dict:
             LowestString = temp_dict[i]
             lowestTerm_Block = i
+            break
         for i in temp_dict:
-            if LowestString < i:
+            if LowestString > temp_dict[i]:
                 LowestString = temp_dict[i]
                 lowestTerm_Block = i
+
         return [lowestTerm_Block,LowestString]
 
     def reCreatePostingList(self,string):

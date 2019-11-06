@@ -78,7 +78,6 @@ class Query:
                     continue
                 res = []
                 temp = []
-                ttemp = []
                 new_pls = []
                 for i in pls:
                     if i != []:
@@ -108,15 +107,9 @@ class Query:
         terms = []
         if "or" in temp:
             temp_terms = temp.split(" or ")
-            # for t in temp_terms:
-            #     t = t.split()
-            #     terms.append(str(t))
             terms = temp_terms
         elif "and" in temp:
             temp_terms = temp.split(" and ")
-            # for t in temp_terms:
-            #     t = t.split()
-            #     terms.append(t)
             terms = temp_terms
         else:
             terms.append(query)

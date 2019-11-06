@@ -17,6 +17,6 @@ def query():
     query.readIndex()
     query.startQyery()
 if __name__ == '__main__':
-    # inverter()
-    # merger()
+    inverter()
+    merger()
     query()
