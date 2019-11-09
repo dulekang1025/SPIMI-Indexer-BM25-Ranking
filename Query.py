@@ -92,6 +92,69 @@ class Query:
                         print("No intersection result.")
                         continue
 
+    def startQyeryWithOutCompression(self):
+        while True:
+            count = 0
+            query = input("Input query: (/N to quit)")
+            flag = ""
+            terms = []
+            if self.findWord(query) == "or":
+                flag = "OR"        # Multiple keyword OR query
+            elif self.findWord(query) == "and":
+                flag = "AND"       # Multiple keyword AND query
+            elif query == "/N":
+                break
+            else:
+                flag = "NONE"      # Single keyword query
+
+        #     processing query
+
+        #     get posting list
+            terms = self.getTerms_without_compression(query)
+            pls = self.getPostingList(terms)
+            if flag == "NONE":
+                for t in pls:
+                    if len(t) != 0:
+                        count += 1
+                if count == 0:
+                    print("No result.")
+                    continue
+                for t in terms:
+                    print(t + ":",end="")
+                    print(sorted(self.index[t]))
+            elif flag == "OR":
+                for t in pls:
+                    if len(t) != 0:
+                        count += 1
+                if count == 0:
+                    print("No result.")
+                    continue
+                res = list(set.union(*map(set, pls)))
+                print(sorted(res))
+
+            else: # and
+                for t in pls:
+                    if len(t) != 0:
+                        count += 1
+                if count == 0:
+                    print("No result.")
+                    continue
+                res = []
+                temp = []
+                new_pls = []
+                for i in pls:
+                    if i != []:
+                        new_pls.append(i)
+                for i in pls:
+                    temp = i
+                for i in new_pls:
+                    temp = set(i).intersection(temp)
+                res = temp
+                print(sorted(res))
+                if len(res) == 0:
+                        print("No intersection result.")
+                        continue
+
 
     def findWord(self,query):
         temp = query.lower()
@@ -116,6 +179,20 @@ class Query:
         # stemming
         stemmer = nltk.PorterStemmer()
         terms = [stemmer.stem(j) for j in terms]
+        print(terms)
+        return terms
+
+    def getTerms_without_compression(self,query):
+        temp = query.lower()
+        terms = []
+        if "or" in temp:
+            temp_terms = temp.split(" or ")
+            terms = temp_terms
+        elif "and" in temp:
+            temp_terms = temp.split(" and ")
+            terms = temp_terms
+        else:
+            terms.append(query)
         print(terms)
         return terms
 
