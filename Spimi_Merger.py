@@ -30,13 +30,7 @@ class Spimi_Merger:
                 tempList = firstLine.split(':')[1]
                 tempDic[firstLine.split(':')[0]] = tempList
                 self.FirstLineOfOriginData[blockID] = tempDic
-                # print("________________________")
-                # for ii in self.FirstLineOfOriginData:
-                #     print(ii,end='')
-                #     for jj in self.FirstLineOfOriginData[ii]:
-                #         print(jj,end='')
-                #         for kk in self.FirstLineOfOriginData[ii][jj]:
-                #             print(" " + kk, end='')
+
         # merge
         counter = 0
         while self.FirstLineOfOriginData:
@@ -66,9 +60,7 @@ class Spimi_Merger:
                 counter += 1
             else:
                 temp = []
-                temp = self.FinalIndex[lowestTerm] + eval(self.FirstLineOfOriginData[lowestBlockId][lowestTerm])
-                # self.FinalIndex[lowestTerm].extend(self.FirstLineOfOriginData[lowestBlockId][lowestTerm])
-                # self.FinalIndex[lowestTerm] = sorted(self.FinalIndex[lowestTerm])
+                temp = self.FinalIndex[lowestTerm] + ast.literal_eval(self.FirstLineOfOriginData[lowestBlockId][lowestTerm])
                 self.FinalIndex[lowestTerm] = temp
 
             # load next term for block whose term had been merged
@@ -108,23 +100,6 @@ class Spimi_Merger:
 
 
 
-        # # print FinalIndex
-        # print("print FinalIndex")
-        # for i in self.FinalIndex:
-        #     print(i + ':',end="")
-        #     print(self.FinalIndex[i])
-        #
-        # # print FirstLineOfOriginData
-        # print("print FirstLineOfOriginData")
-        # for i in self.FirstLineOfOriginData:
-        #     print(i,end="")
-        #     for j in self.FirstLineOfOriginData[i]:
-        #         print(' : ' +j, end="")
-        #         for k in self.FirstLineOfOriginData[i][j]:
-        #             print(k, end="")
-        #         print(" ", end="")
-
-
     def getLowestTerm(self):
         lowestTerm_Block = ''
         LowestString = ''
@@ -133,21 +108,14 @@ class Spimi_Merger:
             # lowestTerm_Block = i
             for j in self.FirstLineOfOriginData[i]:
                 temp_dict[i] = j
-                # LowestString = j
-                # print(lowestTerm_Block + ' ' + LowestString)
-                # if LowestString > j:
-                #     lowestTerm_Block = i
-                #     LowestString = j
         # print(lowestTerm_Block + ' ^ ' + LowestString)
         for i in temp_dict:
             LowestString = temp_dict[i]
             lowestTerm_Block = i
-            break
         for i in temp_dict:
             if LowestString > temp_dict[i]:
                 LowestString = temp_dict[i]
                 lowestTerm_Block = i
-
         return [lowestTerm_Block,LowestString]
 
     def reCreatePostingList(self,string):
