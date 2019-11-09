@@ -94,7 +94,7 @@ class Spimi_Inverter:
             # print(tokens)
             # , . ? ! ...
             # Stupid method.... Will change it later...
-            tokens = [j for j in tokens if not j in [',','+','-','.','?','!','\'\'','\'','-','$','^','~',':',';','"'
+            tokens = [j for j in tokens if not j in [',','+','-','.','?','!','\'\'','\'','$','^','~',':',';','"'
                                                      '{','}','&','(',')','@','*','>','<','#',"''",'``','...','..'
                                                      ,'[',']','|','','=','_','%']]
             tokens = [j for j in tokens if not j in ['1','2','3','4','5','6','7','8','9','0']]
@@ -108,7 +108,7 @@ class Spimi_Inverter:
             tokens = [j for j in tokens if not '8' in j]
             tokens = [j for j in tokens if not '9' in j]
             tokens = [j for j in tokens if not '0' in j]
-            tokens = [j for j in tokens if not '-' in j]
+            # tokens = [j for j in tokens if not '-' in j]
             tokens = [j for j in tokens if not '.' in j]
             tokens = [j for j in tokens if not 'th' in j]
             tokens = [j for j in tokens if not '..' in j]
@@ -143,10 +143,10 @@ class Spimi_Inverter:
             tokens = [stemmer.stem(j) for j in tokens]
 
             # ------------------------------------------------------------
-            tokens = [j for j in tokens if not j in [',', '+', '-', '.', '?', '!', '\'\'', '\'', '-', '$', '^', '~', ':', ';', '"'
+            tokens = [j for j in tokens if not j in [',', '+', '.', '?', '!', '\'\'', '\'', '-', '$', '^', '~', ':', ';', '"'
                               '{', '}', '&','(', ')', '@', '*', '>', '<', '#', "''", '``', '...', '..'
                           , '[', ']', '|', '', '=', '_', '%']]
-            tokens = [j for j in tokens if not '-' in j]
+            # tokens = [j for j in tokens if not '-' in j]
             tokens = [j for j in tokens if not '.' in j]
             tokens = [j for j in tokens if not 'th' in j]
             tokens = [j for j in tokens if not '..' in j]
