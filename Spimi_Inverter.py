@@ -186,6 +186,8 @@ class Spimi_Inverter:
             no += 1
             # token
             tokens = nltk.word_tokenize(self.Dictionary[docID])
+            tokens = [j for j in tokens if not ':' in j]
+            tokens = [j.lower() for j in tokens]
 
             # create posting list
             for token in tokens:
