@@ -5,8 +5,8 @@ def inverter():
     process = Spimi_Inverter()
     process.GetAllFiles()
     process.SplitIntoDoc()
-    process.processDocumentWithCompression()
-    # process.processWithoutCompression()
+    # process.processDocumentWithCompression()
+    process.processWithoutCompression()
 
 def merger():
     merger = Spimi_Merger()
@@ -15,8 +15,9 @@ def merger():
 def query():
     query = Query()
     query.readIndex()
-    query.startQyery()
+    # query.startQyery()
+    query.startQyeryWithOutCompression()
 if __name__ == '__main__':
-    inverter()
-    merger()
+    # inverter()
+    # merger()
     query()

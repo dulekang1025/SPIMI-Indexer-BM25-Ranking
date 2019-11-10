@@ -38,18 +38,9 @@ class Spimi_Inverter:
                             body += line
                         else:
                             self.Dictionary[docID] = body
-                            #  Test
-                            # print(str(docID) + " : " + body)
                             docID = 0
                             body = ""
                             Body_begin = False
-
-                            # if Count_doc >= 500:
-                            #     self.writeToBlock(Dictionary)
-                            #     Dictionary.clear()
-                            #     Count_doc = 0
-                            #     count_test += 1
-                            #     print(count_test)
                         if line.find("</REUTERS") != -1:
                             Doc_begin = False
                     else:
@@ -62,7 +53,6 @@ class Spimi_Inverter:
                                 Count_doc += 1
                                 temp = int(line[q + 7: len(line) - 3])
                             docID = temp
-                            # print("docID : " + str(temp))
                         # find <BODY>
                         if line.find("<BODY>") != -1:
                             Body_begin = True
@@ -91,8 +81,6 @@ class Spimi_Inverter:
 
             # stop words
             tokens = [j for j in tokens if not j in stop_words]
-            # print(tokens)
-            # , . ? ! ...
             # Stupid method.... Will change it later...
             tokens = [j for j in tokens if not j in [',','+','-','.','?','!','\'\'','\'','$','^','~',':',';','"'
                                                      '{','}','&','(',')','@','*','>','<','#',"''",'``','...','..'
@@ -126,16 +114,12 @@ class Spimi_Inverter:
             tokens = [j for j in tokens if not '{' in j]
             tokens = [j for j in tokens if not '}' in j]
 
-
-
-
             # print(tokens)
             # numbers
             tokens = [j for j in tokens if not j.isdigit()]
             tokens = [j for j in tokens if not j.isnumeric()]
             # tokens = [j for j in tokens if not j.isalnum()]
             tokens = [j for j in tokens if not self.isFloat(j)]
-
 
             # print(tokens)
             # stemming
@@ -230,3 +214,7 @@ class Spimi_Inverter:
             if v.replace('.','').isdigit:
                 return True
         return False
+
+    # compute f(t,d)
+    def doc_frequency(self):
+        print()
