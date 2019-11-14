@@ -1,23 +1,30 @@
 import ast
 from os import listdir
+import json
+from collections import OrderedDict
 
 class Spimi_Merger:
-    BlockFilePath = '/Users/lekangdu/Desktop/SPIMI/DISK'
+    """
+    This class is to do the merge part of spimi
+    """
+    BlockFilePath = '/Users/lekangdu/Downloads/40051703-A2/SPIMI-BM25/DISK'
 
-    FirstLineOfOriginData = {} # dictionary { blockID, {term, posting list[]} }
-
-    FinalIndex = {} # dict{ term, posting list[] }
+    FirstLineOfOriginData = {} # dictionary { blockID, {term, posting list{}}}
+    FinalIndex = {} # dict{ term, posting list{} }
     FinalIndexFile = 0
 
     # open block files first
     # and get each block's first data
     def openBlocksAndGetFirstLine(self):
+        """
+        This function is to open block files and get the first line of it
+        """
         BlockFiles = []
         blockID = ''
         files = listdir(self.BlockFilePath)
         for file in files:
             if str(file).find("Block") != -1:
-                     BlockFiles.append(self.BlockFilePath + '/' + file)
+                BlockFiles.append(self.BlockFilePath + '/' + file)
         file_handles = [open(f) for f in BlockFiles]
         for f in file_handles:
             fileName = str(f)
@@ -26,10 +33,13 @@ class Spimi_Merger:
             tempDic = {}
             if firstLine != None and firstLine.split(':')[1] != None:
                 pl = firstLine.split(':')[1]
-                tempList = []
                 tempList = firstLine.split(':')[1]
                 tempDic[firstLine.split(':')[0]] = tempList
                 self.FirstLineOfOriginData[blockID] = tempDic
+                print(type(tempList))
+                for i in tempList:
+                    print(type(i))
+
 
         # merge
         counter = 0
@@ -37,7 +47,7 @@ class Spimi_Merger:
 
             # write total 25000 terms into final index file
             if counter >= 25000:
-                with open('/Users/lekangdu/Desktop/SPIMI/Index/' + str(self.FinalIndexFile) + '.txt', 'a+') as f:
+                with open('/Users/lekangdu/Downloads/40051703-A2/SPIMI-BM25/Index/' + str(self.FinalIndexFile) + '.txt', 'a+') as f:
                     for iterm in self.FinalIndex:
                         f.write(iterm + ":")
                         f.write(str(self.FinalIndex[iterm]) + '\n')
@@ -90,7 +100,7 @@ class Spimi_Merger:
                 self.FirstLineOfOriginData.pop(lowestBlockId)
 
         if not self.FirstLineOfOriginData:
-            with open('/Users/lekangdu/Desktop/SPIMI/Index/' + str(self.FinalIndexFile) + '.txt', 'a+') as f:
+            with open('/Users/lekangdu/Downloads/40051703-A2/SPIMI-BM25/Index/' + str(self.FinalIndexFile) + '.txt', 'a+') as f:
                 for iterm in self.FinalIndex:
                     f.write(iterm + ":")
                     f.write(str(self.FinalIndex[iterm]) + '\n')
@@ -98,9 +108,52 @@ class Spimi_Merger:
                 self.FinalIndex.clear()
                 counter = 0
 
+    def openBlocksAndGetFinalIndex(self):
+        """
+        This fuunction is to get the index and
+        save to files
+        """
+        BlockFiles = []
+        blockID = ''
+        files = listdir(self.BlockFilePath)
+        for file in files:
+            if str(file).find("Block") != -1:
+                BlockFiles.append(self.BlockFilePath + '/' + file)
+        file_handles = [open(f) for f in BlockFiles]
+        count = 0
+        for fi in file_handles:
+            block = json.load(fi)
+            for k, v in block.items():
+                if not k in self.FinalIndex:
+                    self.FinalIndex[k] = v
+                else:
+                    self.FinalIndex[k].update(v)
+        # sort
+        Sorted_PostingList = sorted(self.FinalIndex)
+
+        # write into files
+        temp_dict = OrderedDict()
+        for i in Sorted_PostingList:
+            if count >= 25000:
+                with open('/Users/lekangdu/Downloads/40051703-A2/SPIMI-BM25/Index/' + str(self.FinalIndexFile) + '.txt', 'a+') as f:
+                    json.dump(temp_dict, f)
+                count = 0
+                temp_dict = {}
+                self.FinalIndexFile += 1
+            temp_dict[i] = self.FinalIndex[i]
+            count += 1
+        with open('/Users/lekangdu/Downloads/40051703-A2/SPIMI-BM25/Index/' + str(self.FinalIndexFile) + '.txt', 'a+') as f:
+            json.dump(temp_dict, f)
+        count = 0
+        temp_dict = {}
+        self.FinalIndexFile += 1
 
 
     def getLowestTerm(self):
+        """
+        This function is to get the lowest term of each block
+        :return: lowestTerm_Block,LowestString
+        """
         lowestTerm_Block = ''
         LowestString = ''
         temp_dict = {} # {blockID,term}

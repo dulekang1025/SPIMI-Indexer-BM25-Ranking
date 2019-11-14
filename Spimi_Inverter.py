@@ -1,21 +1,32 @@
 from os import listdir
 import string
 import nltk
+import json
+from collections import OrderedDict
 nltk.download('punkt')
 nltk.download('stopwords')
 
 
 class Spimi_Inverter:
+    """
+    This class is to do the invert part of spimi
+    """
 
-    Src_Files_Path = '/Users/lekangdu/Desktop/SPIMI/documents'
+    Src_Files_Path = '/Users/lekangdu/Downloads/40051703-A2/SPIMI-BM25/documents'
     Src_Files = []
     BlockSize = 500
     BlockFilesNumber = 0
     Dictionary = {}
     PostingList = {}
     Sorted_PostingList = {}
+    doc_length = {}
+    corpus_total_length = 0
+    Count_doc = 0
 
     def GetAllFiles(self):
+        """
+        This fucntion is to get all the src files
+        """
         files = listdir(self.Src_Files_Path)
         for file in files:
             if str(file).find("reut2") != -1:
@@ -23,9 +34,13 @@ class Spimi_Inverter:
                 # print(str(file))
 
     def SplitIntoDoc(self):
-        Count_doc = 0
+        """
+        This function is to inverting the document
+        :return:
+        """
         Doc_begin = False
         Body_begin = False
+        Title_begin = False
         count_test = 0
 
         for file in self.Src_Files:
@@ -50,19 +65,30 @@ class Spimi_Inverter:
                             # get newID
                             q = line.find("NEWID")
                             if(q != -1):
-                                Count_doc += 1
+                                self.Count_doc += 1
                                 temp = int(line[q + 7: len(line) - 3])
                             docID = temp
+                        # find <TITLE>
+                        if line.find("<TITLE>") != -1:
+                            begin_pos = line.find("<TITLE>") + 7
+                            end_pos = len(line) - 1
+                            if line.find("</TITLE>") != -1:
+                                end_pos = line.find("</TITLE>")
+                                title = line[begin_pos : end_pos]
+                                body += title
                         # find <BODY>
                         if line.find("<BODY>") != -1:
                             Body_begin = True
-                            body = line[line.find("<BODY>") + 6: len(line) - 1] + '\n'
+                            body += line[line.find("<BODY>") + 6: len(line) - 1] + '\n'
                         else:
                             continue
-        print(Count_doc)
+        print(self.Count_doc)
         print(len(self.Dictionary))
     # Tokenize, stemming and remove Stopwords
     def processDocumentWithCompression(self):
+        """
+        This fucntion is to process Document With Compression
+        """
         counter = 0
         no = 0
         stop_words = set(nltk.corpus.stopwords.words('english'))
@@ -71,14 +97,9 @@ class Spimi_Inverter:
             no += 1
             # token
             tokens = nltk.word_tokenize(self.Dictionary[docID])
-            # print("counter " + str(counter))
-            # print(docID)
-            # print(tokens)
-            # ------------------------------------------------------------
             # lower case
             tokens = [j.lower() for j in tokens]
             # print(tokens)
-
             # stop words
             tokens = [j for j in tokens if not j in stop_words]
             # Stupid method.... Will change it later...
@@ -114,23 +135,21 @@ class Spimi_Inverter:
             tokens = [j for j in tokens if not '{' in j]
             tokens = [j for j in tokens if not '}' in j]
 
-            # print(tokens)
             # numbers
             tokens = [j for j in tokens if not j.isdigit()]
             tokens = [j for j in tokens if not j.isnumeric()]
-            # tokens = [j for j in tokens if not j.isalnum()]
             tokens = [j for j in tokens if not self.isFloat(j)]
 
-            # print(tokens)
             # stemming
             stemmer = nltk.PorterStemmer()
             tokens = [stemmer.stem(j) for j in tokens]
+
+
 
             # ------------------------------------------------------------
             tokens = [j for j in tokens if not j in [',', '+', '.', '?', '!', '\'\'', '\'', '-', '$', '^', '~', ':', ';', '"'
                               '{', '}', '&','(', ')', '@', '*', '>', '<', '#', "''", '``', '...', '..'
                           , '[', ']', '|', '', '=', '_', '%']]
-            # tokens = [j for j in tokens if not '-' in j]
             tokens = [j for j in tokens if not '.' in j]
             tokens = [j for j in tokens if not 'th' in j]
             tokens = [j for j in tokens if not '..' in j]
@@ -162,6 +181,9 @@ class Spimi_Inverter:
                 counter = 0
 
     def processWithoutCompression(self):
+        """
+        This fucntion is to process Document Without Compression
+        """
         counter = 0
         no = 0
         stop_words = set(nltk.corpus.stopwords.words('english'))
@@ -171,7 +193,27 @@ class Spimi_Inverter:
             # token
             tokens = nltk.word_tokenize(self.Dictionary[docID])
             tokens = [j for j in tokens if not ':' in j]
+            tokens = [j for j in tokens if not j in string.punctuation]
+            tokens = [j for j in tokens if not '&' in j]
+            tokens = [j for j in tokens if not "''" in j]
+
+            # add doc_length
+            self.doc_length[docID] = len(tokens)
+            self.corpus_total_length += len(tokens)
+
+            tokens = [j for j in tokens if not j.isdigit()]
             tokens = [j.lower() for j in tokens]
+            stop_words = set(nltk.corpus.stopwords.words('english'))
+            tokens = [j for j in tokens if not j in stop_words]
+
+            # stemming
+            # stemmer = nltk.PorterStemmer()
+            # tokens = [stemmer.stem(j) for j in tokens]
+
+            # lemmatizer
+            lemmatizer = nltk.stem.WordNetLemmatizer()
+            tokens = [lemmatizer.lemmatize(j) for j in tokens]
+
 
             # create posting list
             for token in tokens:
@@ -186,16 +228,45 @@ class Spimi_Inverter:
                 self.Sorted_PostingList.clear()
                 counter = 0
 
+        # write doc_number, doc_len, doc_avg_len into file
+        self.wrtie_bm25_params()
+
+    # write doc_number, doc_len, doc_avg_len into file
+    def wrtie_bm25_params(self):
+        """
+        This function is to save BM25 parameters
+        """
+        total = {}
+        total["doc_num"] = self.Count_doc
+        total["doc_len"] = self.doc_length
+        doc_avg_len = self.corpus_total_length / self.Count_doc
+        total["doc_avg_len"] = doc_avg_len
+
+        with open('/Users/lekangdu/Downloads/40051703-A2/SPIMI-BM25/DISK/bm25_params.txt', 'w') as f:
+            json.dump(total,f)
+
+
+
     # create posting list
     def createPostingList(self,token,docID):
+        """
+        This fucntion is to create Posting List
+        :param token: list of tokens
+        :param docID: doc id
+        """
         if token not in self.PostingList:
-            self.PostingList[token] = [docID]
+            self.PostingList[token] = {docID : 1}
         else:
             if docID not in self.PostingList[token]:
-                self.PostingList[token].append(docID)
+                self.PostingList[token].update({docID : 1})
+            else:
+                self.PostingList[token][docID] += 1
 
     # test posting list
     def testPostingList(self):
+        """
+        test Posting List
+]        """
         for i in self.PostingList:
             print(i + ' ',end="")
             for j in self.PostingList[i]:
@@ -203,18 +274,24 @@ class Spimi_Inverter:
             print()
     # write dictionary to file
     def writeToBlock(self):
-        with open('/Users/lekangdu/Desktop/SPIMI/DISK/Block' + str(self.BlockFilesNumber) + '.txt', 'a+') as f:
+        """
+        This fucntion is to write index into block files
+        """
+        sorted_dictionary = OrderedDict()
+        with open('/Users/lekangdu/Downloads/40051703-A2/SPIMI-BM25/DISK/Block' + str(self.BlockFilesNumber) + '.txt', 'w') as f:
             for i in self.Sorted_PostingList:
-                f.write(str(i) + ':' + str(self.PostingList[i]) + '\n')
+                sorted_dictionary[i] = self.PostingList[i]
+            json.dump(sorted_dictionary,f)
             self.BlockFilesNumber += 1
 
     # check float
     def isFloat(self,v):
+        """
+        This fucntion is to find the dot
+        :param v: value
+        :return: t or f
+        """
         if v.count('.') == 1:
             if v.replace('.','').isdigit:
                 return True
         return False
-
-    # compute f(t,d)
-    def doc_frequency(self):
-        print()
